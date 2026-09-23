@@ -1,18 +1,36 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { loadCart } from "../utils/cartStorage";
+
+// Totals are always recalculated from the products list, so they can
+// never drift out of sync. The products array is the single source of truth.
+const recalculateTotals = (state) => {
+  state.totalQuantity = state.products.reduce(
+    (sum, item) => sum + item.quantity,
+    0,
+  );
+  state.totalPrice = state.products.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
+};
+
+const defaultAddress = {
+  name: "Miiro Sadat",
+  phone: "+256-700000000",
+  address: "Lubiri Ring Road, Mengo",
+};
+
+const saved = loadCart();
 
 const initialState = {
-  products: [],
+  products: saved?.products ?? [],
   totalQuantity: 0,
   totalPrice: 0,
-
-  shippingAddress: {
-    name: "Miiro Sadat",
-    phone: "+256-700000000",
-    address: "Lubiri Ring Road, Mengo",
-  },
-
+  shippingAddress: saved?.shippingAddress ?? defaultAddress,
   currentOrder: null,
 };
+
+recalculateTotals(initialState);
 
 const CartSlice = createSlice({
   name: "cart",
@@ -20,56 +38,49 @@ const CartSlice = createSlice({
   reducers: {
     addToCart(state, action) {
       const newItem = action.payload;
-      const itemIndex = state.products.find((item) => item.id === newItem.id);
-      if (itemIndex) {
-        itemIndex.quantity++;
-        itemIndex.totalPrice += newItem.price;
+      const existingItem = state.products.find((item) => item.id === newItem.id);
+
+      if (existingItem) {
+        existingItem.quantity++;
       } else {
         state.products.push({
           id: newItem.id,
           name: newItem.name,
           price: newItem.price,
-          quantity: 1,
-          totalPrice: newItem.price,
           image: newItem.image,
+          quantity: 1,
         });
       }
-      state.totalPrice += newItem.price;
-      state.totalQuantity++;
+      recalculateTotals(state);
     },
 
     removeFromCart(state, action) {
-      const id = action.payload;
-      const findItem = state.products.find((item) => item.id === id);
-      if (findItem) {
-        state.totalPrice -= findItem.totalPrice;
-        state.totalQuantity -= findItem.quantity;
-        state.products = state.products.filter((item) => item.id !== id);
-      }
+      state.products = state.products.filter(
+        (item) => item.id !== action.payload,
+      );
+      recalculateTotals(state);
     },
 
     increaseQuantity(state, action) {
-      const id = action.payload;
-      const findItem = state.products.find((item) => item.id === id);
-      if (findItem) {
-        findItem.quantity++;
-        findItem.totalPrice += findItem.price;
-        state.totalQuantity++;
-        state.totalPrice += findItem.price;
+      const item = state.products.find((item) => item.id === action.payload);
+      if (item) {
+        item.quantity++;
+        recalculateTotals(state);
       }
     },
 
     decreaseQuantity(state, action) {
-      const id = action.payload;
-      const findItem = state.products.find((item) => item.id === id);
-      if (findItem.quantity > 1) {
-        if (findItem) {
-          findItem.quantity--;
-          findItem.totalPrice -= findItem.price;
-          state.totalQuantity--;
-          state.totalPrice -= findItem.price;
-        }
+      const item = state.products.find((item) => item.id === action.payload);
+      // Fixed: we now check the item exists BEFORE reading its quantity
+      if (item && item.quantity > 1) {
+        item.quantity--;
+        recalculateTotals(state);
       }
+    },
+
+    clearCart(state) {
+      state.products = [];
+      recalculateTotals(state);
     },
 
     updateShippingAddress(state, action) {
@@ -87,7 +98,9 @@ export const {
   removeFromCart,
   increaseQuantity,
   decreaseQuantity,
+  clearCart,
   updateShippingAddress,
   saveOrder,
 } = CartSlice.actions;
+
 export default CartSlice.reducer;

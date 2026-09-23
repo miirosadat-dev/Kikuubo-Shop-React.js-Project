@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
+import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -22,6 +23,15 @@ function App() {
 
   return (
     <BrowserRouter>
+      {/* Shows small pop-up messages (replaces alert()) */}
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 2500,
+          style: { borderRadius: "12px", fontSize: "14px" },
+        }}
+      />
+
       <Navbar />
       <ScrollToTop />
 

@@ -1,4 +1,5 @@
-import React from "react";
+import toast from "react-hot-toast";
+import { formatCurrency } from "../utils/formatCurrency";
 import { FaStar } from "react-icons/fa";
 import { addToCart } from "../redux/CartSlice";
 import { useDispatch } from "react-redux";
@@ -10,7 +11,7 @@ const ProductCard = ({ product }) => {
     e.stopPropagation()
     e.preventDefault()
     dispatch(addToCart(product))
-    alert("Product Added Successfully")
+    toast.success(`${product.name} added to cart`)
   }
   return (
     <div
@@ -23,7 +24,7 @@ const ProductCard = ({ product }) => {
         className="w-full h-48 object-contain mb-4"
       />
       <h3 className="text-lg font-semibold">{product.name}</h3>
-      <p className="text-gray-500">UGX {product.price}</p>
+      <p className="text-gray-500">{formatCurrency(product.price)}</p>
       <div className="flex items-center mt-2">
         <FaStar className="text-yellow-500" />
         <FaStar className="text-yellow-500" />

@@ -1,1 +1,114 @@
 @import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   KIKUUBO SHOP DESIGN SYSTEM
+   Change a color here once and the whole site follows.
+   ------------------------------------------------------------------ */
+
+@theme {
+    /* Brand: red (same shade family the site already uses) */
+    --color-brand-50: #fef2f2;
+    --color-brand-100: #fee2e2;
+    --color-brand-200: #fecaca;
+    --color-brand-300: #fca5a5;
+    --color-brand-400: #f87171;
+    --color-brand-500: #ef4444;
+    --color-brand-600: #dc2626;
+    --color-brand-700: #b91c1c;
+    --color-brand-800: #991b1b;
+    --color-brand-900: #7f1d1d;
+
+    /* Accent: amber, used only for ratings, badges and highlights */
+    --color-accent-50: #fffbeb;
+    --color-accent-100: #fef3c7;
+    --color-accent-400: #fbbf24;
+    --color-accent-500: #f59e0b;
+    --color-accent-600: #d97706;
+}
+
+/* ---------- Base: small global fixes ---------- */
+@layer base {
+    body {
+        @apply bg-white text-gray-900 antialiased;
+    }
+
+    /* Tailwind v4 resets buttons to the arrow cursor. Put the hand back. */
+    button:not(:disabled),
+    [role="button"]:not([aria-disabled="true"]) {
+        cursor: pointer;
+    }
+
+    /* Keyboard users can always see where they are */
+    :focus-visible {
+        outline: 2px solid var(--color-brand-600);
+        outline-offset: 2px;
+    }
+}
+
+/* ---------- Reusable components ---------- */
+@layer components {
+
+    /* Buttons: always combine .btn with one variant, e.g. "btn btn-primary" */
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .btn-primary {
+        @apply bg-brand-600 text-white hover:bg-brand-700 active:scale-[0.98];
+    }
+
+    .btn-dark {
+        @apply bg-gray-900 text-white hover:bg-gray-700 active:scale-[0.98];
+    }
+
+    .btn-outline {
+        @apply border border-gray-300 bg-white text-gray-800 hover:border-brand-600 hover:text-brand-600;
+    }
+
+    .btn-ghost {
+        @apply text-gray-700 hover:bg-gray-100;
+    }
+
+    .btn-sm {
+        @apply px-3 py-2 text-xs;
+    }
+
+    .btn-block {
+        @apply w-full;
+    }
+
+    /* Forms */
+    .label {
+        @apply mb-2 block text-sm font-semibold text-gray-700;
+    }
+
+    .input {
+        @apply w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 outline-none transition-all duration-200 placeholder:text-gray-400 focus:border-brand-600 focus:bg-white focus:ring-4 focus:ring-brand-100;
+    }
+
+    .input-error {
+        @apply border-red-500 focus:border-red-500 focus:ring-red-100;
+    }
+
+    .field-error {
+        @apply mt-1 text-xs text-red-600;
+    }
+
+    /* Surfaces */
+    .card {
+        @apply rounded-2xl border border-gray-200 bg-white shadow-sm;
+    }
+
+    .badge {
+        @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
+    }
+
+    /* Layout */
+    .container-page {
+        @apply mx-auto w-full max-w-7xl px-4 md:px-8 lg:px-16;
+    }
+
+    .section-title {
+        @apply text-2xl font-bold text-gray-900 md:text-3xl;
+    }
+}
