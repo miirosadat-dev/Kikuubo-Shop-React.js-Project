@@ -27,7 +27,7 @@ const ProductCard = ({ product }) => {
         to={detailsPath}
         tabIndex={-1}
         aria-hidden="true"
-        className="relative block bg-gray-50 p-4"
+        className="relative block bg-gray-50 p-3 sm:p-4"
       >
         <img
           src={product.image}
@@ -49,7 +49,7 @@ const ProductCard = ({ product }) => {
         )}
       </Link>
 
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex flex-1 flex-col p-3 sm:p-4">
         {product.brand && (
           <p className="text-xs font-medium text-gray-500">{product.brand}</p>
         )}
@@ -65,7 +65,7 @@ const ProductCard = ({ product }) => {
         </div>
 
         <div className="mt-2 flex flex-wrap items-baseline gap-x-2">
-          <span className="font-bold text-gray-900">
+          <span className="text-sm font-bold text-gray-900 sm:text-base">
             {formatCurrency(product.price)}
           </span>
           {discount > 0 && (

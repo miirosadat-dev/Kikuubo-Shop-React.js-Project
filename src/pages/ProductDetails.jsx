@@ -8,6 +8,7 @@ import { formatCurrency } from "../utils/formatCurrency";
 import { getDiscountPercent } from "../utils/product";
 import Rating from "../components/Rating";
 import ProductSection from "../components/ProductSection";
+import { usePageTitle } from "../hooks/usePageTitle";
 
 const LOW_STOCK_LIMIT = 5;
 
@@ -243,6 +244,7 @@ const ProductDetails = () => {
 
     // The address gives us text ("7"), our products use numbers (7)
     const product = products.find((item) => item.id === Number(id));
+    usePageTitle(loading ? null : product ? product.name : "Product not found");
 
     // Same category, same type first, then best rated
     const related = useMemo(() => {

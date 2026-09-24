@@ -104,7 +104,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link
             to="/"
-            className="whitespace-nowrap text-lg font-extrabold tracking-tight text-brand-600 md:text-xl"
+            className="whitespace-nowrap text-base sm:text-lg font-extrabold tracking-tight text-brand-600 md:text-xl"
           >
             KIKUUBO SHOP
           </Link>
@@ -160,7 +160,7 @@ const Navbar = () => {
               aria-label={`Cart, ${totalQuantity} items`}
               className="relative flex h-10 w-10 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 hover:text-brand-600"
             >
-              <FaShoppingCart className="text-lg" />
+              <FaShoppingCart className="text-base sm:text-lg" />
               {totalQuantity > 0 && (
                 <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-600 px-1 text-[11px] font-bold text-white">
                   {totalQuantity > 99 ? "99+" : totalQuantity}

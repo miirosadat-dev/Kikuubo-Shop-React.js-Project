@@ -17,6 +17,7 @@ import Contact from "./pages/Contact";
 import About from "./pages/About";
 import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
+import TitleManager from "./components/TitleManager";
 
 function App() {
   const dispatch = useDispatch();
@@ -36,22 +37,33 @@ function App() {
         }}
       />
 
+      {/* Lets keyboard users jump past the menu. Only visible when it has focus. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:font-semibold focus:text-brand-600 focus:shadow-lg"
+      >
+        Skip to content
+      </a>
+
       <Navbar />
       <ScrollToTop />
+      <TitleManager />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/product/:id" element={<ProductDetails />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/order-success" element={<OrderSuccess />} />
-        <Route path="/track-order" element={<OrderTracking />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/about" element={<About />} />
-        {/* Anything else */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <div id="main-content" tabIndex={-1} className="scroll-mt-20 outline-none">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/product/:id" element={<ProductDetails />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/order-success" element={<OrderSuccess />} />
+          <Route path="/track-order" element={<OrderTracking />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<About />} />
+          {/* Anything else */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
 
       <Footer />
     </BrowserRouter>

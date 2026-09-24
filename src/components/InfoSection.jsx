@@ -1,53 +1,46 @@
-import React from "react";
-import {
-  FaHeadset,
-  FaLock,
-  FaMoneyBillWave,
-  FaShippingFast,
-  FaTag,
-} from "react-icons/fa";
+import { FaHeadset, FaLock, FaShippingFast, FaTag } from "react-icons/fa";
 
-const InfoSection = () => {
-  const infoItems = [
-    {
-      icon: <FaShippingFast className="text-3xl text-red-600" />,
-      title: "Free Shipping",
-      description: "Get your orders delivered with no extra cost",
-    },
-    {
-      icon: <FaHeadset className="text-3xl text-red-600" />,
-      title: "Support 24/7",
-      description: "We are here to assist you anytime",
-    },
+// Same messages as before. Make sure each one is true for your shop.
+const infoItems = [
+  {
+    Icon: FaShippingFast,
+    title: "Free shipping",
+    description: "Get your orders delivered with no extra cost",
+  },
+  {
+    Icon: FaHeadset,
+    title: "Support 24/7",
+    description: "We are here to assist you anytime",
+  },
+  {
+    Icon: FaLock,
+    title: "Secure payment",
+    description: "Your payment information is safe with us",
+  },
+  {
+    Icon: FaTag,
+    title: "Discounts",
+    description: "Enjoy the best prices on our products",
+  },
+];
 
-    {
-      icon: <FaLock className="text-3xl text-red-600" />,
-      title: "Payment Secure",
-      description: "Your payment information is safe with us",
-    },
-    {
-      icon: <FaTag className="text-3xl text-red-600" />,
-      title: "Discount",
-      description: "Enjoy the best prices on our products",
-    },
-  ];
-  return (
-    <div className="bg-white pb-8 lg:mb-5">
-      <div className="container mx-auto grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {infoItems.map((item, index) => (
-          <div
-            key={index}
-            className="flex flex-col items-center p-4 border border-gray-400 rounded-lg shadow-md
-          transform transition-transform duration-300 hover:scale-105 cursor-pointer"
-          >
-            {item.icon}
-            <h3 className="mt-4 text-xl font-semibold">{item.title}</h3>
-            <p className="mt-2 text-gray-600 text-center">{item.description}</p>
-          </div>
-        ))}
-      </div>
+const InfoSection = () => (
+  <section aria-label="Why shop with us" className="py-4">
+    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+      {infoItems.map(({ Icon, title, description }) => (
+        <div
+          key={title}
+          className="card flex flex-col items-center p-4 text-center sm:p-5"
+        >
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-xl text-brand-600">
+            <Icon />
+          </span>
+          <p className="mt-3 font-semibold text-gray-900">{title}</p>
+          <p className="mt-1 text-sm text-gray-600">{description}</p>
+        </div>
+      ))}
     </div>
-  );
-};
+  </section>
+);
 
 export default InfoSection;
