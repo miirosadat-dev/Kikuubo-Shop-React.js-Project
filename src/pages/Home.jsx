@@ -5,6 +5,7 @@ import banner1 from "../assets/images/banner1.png";
 import InfoSection from "../components/InfoSection";
 import CategorySection from "../components/CategorySection";
 import ProductSection from "../components/ProductSection";
+import DeveloperPopup from "../components/DeveloperPopup";
 
 // Categories that get their own product row on the home page
 const SHOWCASE_CATEGORIES = ["Electronics", "Fashion"];
@@ -49,6 +50,7 @@ const Home = () => {
 
   return (
     <main className="container-page pb-12">
+      <DeveloperPopup />
       {/* Sidebar + hero */}
       <section className="flex flex-col gap-6 py-4 md:flex-row md:py-6">
         <aside className="hidden md:block md:w-1/4 lg:w-1/5">

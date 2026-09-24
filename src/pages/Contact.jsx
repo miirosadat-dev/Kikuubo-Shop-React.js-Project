@@ -1,6 +1,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import PageBanner from "../components/PageBanner";
+import DeveloperPopup from "../components/DeveloperPopup";
 import contactBanner from "../assets/images/contact.webp";
 import {
     FaEnvelope,
@@ -89,6 +90,7 @@ const Contact = () => {
 
     return (
         <main className="container-page pb-10 md:pb-14">
+            <DeveloperPopup />
             <div className="pt-4 md:pt-6">
                 <PageBanner
                     image={contactBanner}

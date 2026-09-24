@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import PageBanner from "../components/PageBanner";
 import aboutBanner from "../assets/images/about.webp";
+import DeveloperPopup from "../components/DeveloperPopup";
 import { FaMobileAlt, FaTruck, FaHeadset } from "react-icons/fa";
 import CategorySection from "../components/CategorySection";
 import { siteInfo } from "../config/siteInfo";
@@ -47,6 +48,7 @@ const reasons = [
 
 const About = () => (
     <main className="container-page pb-12">
+        <DeveloperPopup />
         <div className="pt-4 md:pt-6">
             <PageBanner
                 image={aboutBanner}

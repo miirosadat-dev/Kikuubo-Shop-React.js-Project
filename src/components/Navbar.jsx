@@ -87,7 +87,7 @@ const Navbar = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-sm">
+      <header className="sticky top-0 z-40 border-b border-gray-200 bg-fadeyellow/60 shadow-sm">
         <div className="container-page flex flex-wrap items-center gap-x-3 gap-y-3 py-3 md:flex-nowrap md:gap-x-5">
           {/* Menu button (phones and tablets only) */}
           <button

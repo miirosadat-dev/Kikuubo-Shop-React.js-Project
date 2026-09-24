@@ -49,6 +49,7 @@ function App() {
       <ScrollToTop />
       <TitleManager />
 
+
       <div id="main-content" tabIndex={-1} className="scroll-mt-20 outline-none">
         <Routes>
           <Route path="/" element={<Home />} />

@@ -85,7 +85,7 @@ const Footer = () => {
           <ul className="mt-4 space-y-2 text-sm">
             {quickLinks.map((link) => (
               <li key={link.to}>
-                <Link to={link.to} className="hover:text-white hover:underline">
+                <Link to={link.to} className="hover:text-orange-500 hover:underline">
                   {link.label}
                 </Link>
               </li>
@@ -105,7 +105,7 @@ const Footer = () => {
               <FaPhoneAlt className="mt-1 shrink-0 text-brand-400" />
               <a
                 href={`tel:${siteInfo.phone.replace(/\s/g, "")}`}
-                className="hover:text-white hover:underline"
+                className="hover:text-orange-500 hover:underline"
               >
                 {siteInfo.phone}
               </a>
@@ -116,7 +116,7 @@ const Footer = () => {
                 href={`https://wa.me/${siteInfo.whatsapp}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-white hover:underline"
+                className="hover:text-orange-500 hover:underline"
               >
                 Chat on WhatsApp
               </a>
@@ -125,7 +125,7 @@ const Footer = () => {
               <FaEnvelope className="mt-1 shrink-0 text-brand-400" />
               <a
                 href={`mailto:${siteInfo.email}`}
-                className="break-all hover:text-white hover:underline"
+                className="break-all hover:text-orange-500 hover:underline"
               >
                 {siteInfo.email}
               </a>
