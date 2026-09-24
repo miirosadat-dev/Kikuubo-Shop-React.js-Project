@@ -36,19 +36,22 @@ const CartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
+    // Product cards send the product and get 1 added.
+    // The product page sends { ...product, quantity: 3 } to add several at once.
     addToCart(state, action) {
       const newItem = action.payload;
+      const quantity = Math.max(1, Math.floor(Number(newItem.quantity)) || 1);
       const existingItem = state.products.find((item) => item.id === newItem.id);
 
       if (existingItem) {
-        existingItem.quantity++;
+        existingItem.quantity += quantity;
       } else {
         state.products.push({
           id: newItem.id,
           name: newItem.name,
           price: newItem.price,
           image: newItem.image,
-          quantity: 1,
+          quantity,
         });
       }
       recalculateTotals(state);
@@ -71,7 +74,6 @@ const CartSlice = createSlice({
 
     decreaseQuantity(state, action) {
       const item = state.products.find((item) => item.id === action.payload);
-      // Fixed: we now check the item exists BEFORE reading its quantity
       if (item && item.quantity > 1) {
         item.quantity--;
         recalculateTotals(state);
