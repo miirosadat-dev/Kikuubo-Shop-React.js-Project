@@ -6,12 +6,12 @@ import {
   FaBars,
   FaTimes,
 } from "react-icons/fa";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import Register from "./Register";
 import Modal from "./Modal";
 import Login from "./Login";
-import { setSearchTerm } from "../redux/productSlice";
+
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -35,15 +35,13 @@ const Navbar = () => {
 
   // Total number of items (3 phones + 2 shirts = 5), not the number of product lines
   const totalQuantity = useSelector((state) => state.cart.totalQuantity);
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleSearch = (e) => {
     e.preventDefault();
     const term = search.trim();
     if (!term) return;
-    dispatch(setSearchTerm(term));
-    navigate("/filter-data");
+    navigate(`/shop?q=${encodeURIComponent(term)}`);
   };
 
   const openSignUp = () => {
