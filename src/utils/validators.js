@@ -1,4 +1,4 @@
-// Simple checks used by the address form, checkout and (in step 7) login and register.
+// Simple checks used by forms across the shop.
 
 export const isValidEmail = (value) => /^\S+@\S+\.\S+$/.test(value.trim());
 
@@ -17,3 +17,7 @@ export const normalizeUgandaPhone = (value) => {
     if (phone.startsWith("0")) return `+256${phone.slice(1)}`;
     return phone;
 };
+
+// At least 8 characters, with at least one letter and one number
+export const isValidPassword = (value) =>
+    value.length >= 8 && /[A-Za-z]/.test(value) && /\d/.test(value);

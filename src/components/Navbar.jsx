@@ -1,4 +1,5 @@
 import { useState } from "react";
+import toast from "react-hot-toast";
 import {
   FaSearch,
   FaUser,
@@ -6,12 +7,13 @@ import {
   FaBars,
   FaTimes,
 } from "react-icons/fa";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import Register from "./Register";
 import Modal from "./Modal";
 import Login from "./Login";
-
+import ForgotPassword from "./ForgotPassword";
+import { loginSuccess, logout } from "../redux/authSlice";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -20,6 +22,12 @@ const navLinks = [
   { to: "/about", label: "About" },
 ];
 
+const modalLabels = {
+  login: "Log in",
+  register: "Create account",
+  forgot: "Reset password",
+};
+
 // NavLink tells us if the link matches the current page, so we can highlight it
 const linkClass = ({ isActive }) =>
   `rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${isActive
@@ -27,14 +35,18 @@ const linkClass = ({ isActive }) =>
     : "text-gray-700 hover:bg-gray-100 hover:text-brand-600"
   }`;
 
+const firstNameOf = (name) => name.trim().split(/\s+/)[0];
+
 const Navbar = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLogin, setIsLogin] = useState(true);
+  const [view, setView] = useState("login"); // "login" | "register" | "forgot"
   const [menuOpen, setMenuOpen] = useState(false);
   const [search, setSearch] = useState("");
 
   // Total number of items (3 phones + 2 shirts = 5), not the number of product lines
   const totalQuantity = useSelector((state) => state.cart.totalQuantity);
+  const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleSearch = (e) => {
@@ -44,18 +56,34 @@ const Navbar = () => {
     navigate(`/shop?q=${encodeURIComponent(term)}`);
   };
 
-  const openSignUp = () => {
-    setIsLogin(false);
+  const openModal = (whichView) => {
+    setView(whichView);
     setIsModalOpen(true);
   };
+  const openLogin = () => openModal("login");
+  const openSignUp = () => openModal("register");
+  const openForgot = () => openModal("forgot");
 
-  // Always opens on the Login form (before, it reopened on whichever form was last used)
-  const openLogin = () => {
-    setIsLogin(true);
-    setIsModalOpen(true);
+  const handleLoginSuccess = (loggedInUser, remember) => {
+    dispatch(loginSuccess({ user: loggedInUser, remember }));
+    setIsModalOpen(false);
+    toast.success(`Welcome back, ${firstNameOf(loggedInUser.name)}!`);
+  };
+
+  const handleRegisterSuccess = (newUser) => {
+    dispatch(loginSuccess({ user: newUser, remember: true }));
+    setIsModalOpen(false);
+    toast.success(`Account created. Welcome, ${firstNameOf(newUser.name)}!`);
+  };
+
+  const handleLogout = () => {
+    dispatch(logout());
+    toast("You have been logged out.");
   };
 
   const closeMenu = () => setMenuOpen(false);
+
+  const initial = user ? user.name.trim().charAt(0).toUpperCase() : "";
 
   return (
     <>
@@ -141,31 +169,58 @@ const Navbar = () => {
             </Link>
 
             {/* Tablet and desktop */}
-            <div className="hidden items-center gap-2 md:flex">
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={openLogin}
-              >
-                Login
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary btn-sm"
-                onClick={openSignUp}
-              >
-                Register
-              </button>
-            </div>
+            {user ? (
+              <div className="hidden items-center gap-2 md:flex">
+                <span
+                  aria-hidden="true"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700"
+                >
+                  {initial}
+                </span>
+                <span className="max-w-32 truncate text-sm font-medium text-gray-700">
+                  Hi, {firstNameOf(user.name)}
+                </span>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <div className="hidden items-center gap-2 md:flex">
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={openLogin}
+                >
+                  Login
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={openSignUp}
+                >
+                  Register
+                </button>
+              </div>
+            )}
 
-            {/* Phone */}
+            {/* Phone: opens the login form, or the menu (with Logout) when signed in */}
             <button
               type="button"
               className="flex h-10 w-10 items-center justify-center rounded-full text-gray-700 hover:bg-gray-100 hover:text-brand-600 md:hidden"
-              onClick={openLogin}
-              aria-label="Login or register"
+              onClick={user ? () => setMenuOpen(true) : openLogin}
+              aria-label={user ? "Open account menu" : "Login or register"}
             >
-              <FaUser />
+              {user ? (
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-sm font-bold text-brand-700">
+                  {initial}
+                </span>
+              ) : (
+                <FaUser />
+              )}
             </button>
           </div>
         </div>
@@ -189,27 +244,50 @@ const Navbar = () => {
                 </NavLink>
               ))}
 
-              <div className="mt-2 flex gap-2 border-t border-gray-100 pt-3 md:hidden">
-                <button
-                  type="button"
-                  className="btn btn-outline btn-sm flex-1"
-                  onClick={() => {
-                    closeMenu();
-                    openLogin();
-                  }}
-                >
-                  Login
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm flex-1"
-                  onClick={() => {
-                    closeMenu();
-                    openSignUp();
-                  }}
-                >
-                  Register
-                </button>
+              <div className="mt-2 border-t border-gray-100 pt-3 md:hidden">
+                {user ? (
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="min-w-0 truncate text-sm text-gray-600">
+                      Signed in as{" "}
+                      <span className="font-semibold text-gray-900">
+                        {user.name}
+                      </span>
+                    </p>
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-sm"
+                      onClick={() => {
+                        closeMenu();
+                        handleLogout();
+                      }}
+                    >
+                      Logout
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-sm flex-1"
+                      onClick={() => {
+                        closeMenu();
+                        openLogin();
+                      }}
+                    >
+                      Login
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm flex-1"
+                      onClick={() => {
+                        closeMenu();
+                        openSignUp();
+                      }}
+                    >
+                      Register
+                    </button>
+                  </div>
+                )}
               </div>
             </nav>
           </div>
@@ -217,12 +295,22 @@ const Navbar = () => {
       </header>
 
       {/* Kept outside <header> on purpose so the pop-up covers the whole screen */}
-      <Modal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}>
-        {isLogin ? (
-          <Login openSignUp={openSignUp} />
-        ) : (
-          <Register openLogin={openLogin} />
+      <Modal
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+        label={modalLabels[view]}
+      >
+        {view === "login" && (
+          <Login
+            openSignUp={openSignUp}
+            openForgot={openForgot}
+            onSuccess={handleLoginSuccess}
+          />
         )}
+        {view === "register" && (
+          <Register openLogin={openLogin} onSuccess={handleRegisterSuccess} />
+        )}
+        {view === "forgot" && <ForgotPassword openLogin={openLogin} />}
       </Modal>
     </>
   );

@@ -267,7 +267,7 @@ const Cart = () => {
         </aside>
       </div>
 
-      <Modal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}>
+      <Modal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen} label="Change delivery address">
         <ChangeAddress
           address={shippingAddress}
           dispatch={dispatch}

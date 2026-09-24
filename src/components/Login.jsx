@@ -1,91 +1,126 @@
-import React from "react";
+import { useState } from "react";
+import FormField from "./FormField";
+import PasswordInput from "./PasswordInput";
+import { loginUser } from "../services/authService";
+import { isValidEmail } from "../utils/validators";
 
-const Login = ({ openSignUp }) => {
+const Login = ({ openSignUp, openForgot, onSuccess }) => {
+  const [form, setForm] = useState({ email: "", password: "", remember: true });
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Update one field, and clear its error while the person types
+  const handleChange = (field) => (e) => {
+    const value = field === "remember" ? e.target.checked : e.target.value;
+    setForm((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+    setSubmitError("");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const found = {};
+    if (!isValidEmail(form.email)) found.email = "Enter a valid email address.";
+    if (!form.password) found.password = "Enter your password.";
+    setErrors(found);
+    if (Object.keys(found).length > 0) return;
+
+    setIsSubmitting(true);
+    try {
+      const user = await loginUser(form);
+      onSuccess(user, form.remember);
+    } catch (error) {
+      setSubmitError(error.message);
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="w-full max-w-md rounded-3xl bg-white p-8">
-      {/* Header */}
-      <div className="mb-8 text-center">
-        <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
-
-        <p className="mt-2 text-sm text-gray-500">
-          Login to your Kikuubo Shop account
+    <div>
+      <div className="mb-6 pr-8">
+        <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Log in to your Kikuubo Shop account
         </p>
       </div>
 
-      <form className="space-y-6">
-        {/* Email */}
-        <div>
-          <label
-            htmlFor="email"
-            className="mb-2 block text-sm font-semibold text-gray-700"
-          >
-            Email Address
-          </label>
-
+      <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        <FormField id="login-email" label="Email address" error={errors.email}>
           <input
-            id="email"
+            id="login-email"
             type="email"
+            autoComplete="email"
+            autoFocus
             placeholder="Enter your email"
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-100"
+            value={form.email}
+            onChange={handleChange("email")}
+            aria-invalid={Boolean(errors.email)}
+            aria-describedby={errors.email ? "login-email-error" : undefined}
+            className={`input ${errors.email ? "input-error" : ""}`}
           />
-        </div>
+        </FormField>
 
-        {/* Password */}
-        <div>
-          <label
-            htmlFor="password"
-            className="mb-2 block text-sm font-semibold text-gray-700"
-          >
-            Password
-          </label>
-
-          <input
-            id="password"
-            type="password"
+        <FormField id="login-password" label="Password" error={errors.password}>
+          <PasswordInput
+            id="login-password"
+            autoComplete="current-password"
             placeholder="Enter your password"
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 outline-none transition-all duration-300 placeholder:text-gray-400 focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-100"
+            value={form.password}
+            onChange={handleChange("password")}
+            invalid={Boolean(errors.password)}
           />
-        </div>
+        </FormField>
 
-        {/* Remember + Forgot */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <label className="flex cursor-pointer items-center gap-2 text-sm text-gray-600">
             <input
               type="checkbox"
-              className="h-4 w-4 rounded cursor-pointer border-gray-300 text-red-500 focus:ring-red-400"
+              checked={form.remember}
+              onChange={handleChange("remember")}
+              className="h-4 w-4 rounded accent-brand-600"
             />
-
-            <span>Remember Me</span>
+            Remember me
           </label>
 
-          <a
-            href="#"
-            className="text-sm font-medium text-red-500 transition hover:text-red-600"
+          <button
+            type="button"
+            onClick={openForgot}
+            className="text-sm font-medium text-brand-600 hover:underline"
           >
-            Forgot Password?
-          </a>
+            Forgot password?
+          </button>
         </div>
 
-        {/* Button */}
+        {submitError && (
+          <p
+            role="alert"
+            className="rounded-xl bg-brand-50 p-3 text-sm text-brand-800"
+          >
+            {submitError}
+          </p>
+        )}
+
         <button
           type="submit"
-          className="w-full rounded-xl cursor-pointer bg-red-500 py-3.5 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-red-600 hover:shadow-lg active:translate-y-0"
+          disabled={isSubmitting}
+          className="btn btn-primary btn-block py-3.5"
         >
-          Login
+          {isSubmitting ? "Logging in..." : "Login"}
         </button>
       </form>
 
-      {/* Register */}
-      <div className="mt-8 text-center text-sm text-gray-600">
-        <span>Don't have an account?</span>
-
+      <p className="mt-6 text-center text-sm text-gray-600">
+        Don't have an account?
         <button
-          className="ml-2 font-semibold text-red-500 transition hover:text-red-600"
+          type="button"
+          className="ml-2 font-semibold text-brand-600 hover:underline"
           onClick={openSignUp}
         >
-          Sign Up
+          Sign up
         </button>
-      </div>
+      </p>
     </div>
   );
 };

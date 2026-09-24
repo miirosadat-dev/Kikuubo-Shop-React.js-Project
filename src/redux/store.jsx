@@ -1,22 +1,33 @@
 import { configureStore } from "@reduxjs/toolkit";
 import CartSlice from "./CartSlice";
 import productSlice from "./productSlice";
+import authSlice from "./authSlice";
 import { saveCart } from "../utils/cartStorage";
+import { saveAuth } from "../utils/authStorage";
 
 const store = configureStore({
   reducer: {
     cart: CartSlice,
     product: productSlice,
+    auth: authSlice,
   },
 });
 
-// Save the cart whenever it changes (and only then, not on every search keystroke)
+// Save the cart and the signed-in person whenever they change
+// (and only then, not on every unrelated action)
 let previousCart = store.getState().cart;
+let previousAuth = store.getState().auth;
+
 store.subscribe(() => {
-  const currentCart = store.getState().cart;
-  if (currentCart !== previousCart) {
-    previousCart = currentCart;
-    saveCart(currentCart);
+  const state = store.getState();
+
+  if (state.cart !== previousCart) {
+    previousCart = state.cart;
+    saveCart(state.cart);
+  }
+  if (state.auth !== previousAuth) {
+    previousAuth = state.auth;
+    saveAuth(state.auth);
   }
 });
 
