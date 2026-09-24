@@ -1,5 +1,7 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
+import PageBanner from "../components/PageBanner";
+import contactBanner from "../assets/images/contact.webp";
 import {
     FaEnvelope,
     FaMapMarkerAlt,
@@ -86,18 +88,17 @@ const Contact = () => {
     };
 
     return (
-        <main className="container-page py-10 md:py-14">
-            <div className="max-w-2xl">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
-                    Contact us
-                </h1>
-                <p className="mt-3 text-gray-600">
-                    Questions about an order, a product or delivery? Send us a message and
-                    we will be happy to help.
-                </p>
+        <main className="container-page pb-10 md:pb-14">
+            <div className="pt-4 md:pt-6">
+                <PageBanner
+                    image={contactBanner}
+                    position="72% 8%"
+                    title="Contact us"
+                    text="Questions about an order, a product or delivery? Send us a message and we will be happy to help."
+                />
             </div>
 
-            <div className="mt-10 grid gap-8 lg:grid-cols-5">
+            <div className="mt-8 grid gap-8 md:mt-10 lg:grid-cols-5">
                 {/* Form */}
                 <section className="card p-6 md:p-8 lg:col-span-3">
                     <h2 className="text-xl font-bold text-gray-900">Send a message</h2>

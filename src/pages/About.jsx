@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import PageBanner from "../components/PageBanner";
+import aboutBanner from "../assets/images/about.webp";
 import { FaMobileAlt, FaTruck, FaHeadset } from "react-icons/fa";
 import CategorySection from "../components/CategorySection";
 import { siteInfo } from "../config/siteInfo";
@@ -45,12 +47,17 @@ const reasons = [
 
 const About = () => (
     <main className="container-page pb-12">
+        <div className="pt-4 md:pt-6">
+            <PageBanner
+                image={aboutBanner}
+                position="72% 65%"
+                title={`About ${siteInfo.name}`}
+            />
+        </div>
+
         {/* Intro */}
-        <section className="max-w-3xl py-10 md:py-14">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
-                About {siteInfo.name}
-            </h1>
-            <p className="mt-4 text-lg leading-8 text-gray-600">
+        <section className="max-w-3xl py-10 md:py-12">
+            <p className="text-lg leading-8 text-gray-600">
                 {siteInfo.name} is an online shop for people in Uganda. Phones,
                 laptops, fashion, home essentials, beauty, sports gear and car
                 accessories, all in one place, with prices in shillings and payment the
