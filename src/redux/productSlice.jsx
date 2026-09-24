@@ -1,9 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// Searching and filtering now live in the page address (?q=phone&category=Fashion),
+// so this slice only needs to hold the products and whether they are still loading.
 const initialState = {
   products: [],
-  searchTerm: "",
-  filteredData: [],
+  loading: true,
 };
 
 const productSlice = createSlice({
@@ -12,17 +13,10 @@ const productSlice = createSlice({
   reducers: {
     setProducts(state, action) {
       state.products = action.payload;
-      state.filteredData = action.payload;
-    },
-
-    setSearchTerm(state, action) {
-      state.searchTerm = action.payload;
-      state.filteredData = state.products.filter((product) =>
-        product.name.toLowerCase().includes(state.searchTerm.toLowerCase()),
-      );
+      state.loading = false;
     },
   },
 });
 
-export const { setProducts, setSearchTerm } = productSlice.actions;
+export const { setProducts } = productSlice.actions;
 export default productSlice.reducer;
