@@ -25,6 +25,7 @@ export const saveCart = (cart) => {
             JSON.stringify({
                 products: cart.products,
                 shippingAddress: cart.shippingAddress,
+                currentOrder: cart.currentOrder,
             }),
         );
     } catch {

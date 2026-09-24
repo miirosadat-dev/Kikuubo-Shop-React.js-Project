@@ -1,332 +1,280 @@
 import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { saveOrder } from "../redux/CartSlice";
-import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { clearCart, saveOrder } from "../redux/CartSlice";
+import { formatCurrency } from "../utils/formatCurrency";
+import { isValidUgandaPhone, normalizeUgandaPhone } from "../utils/validators";
 
 const Checkout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const shippingInfo = useSelector((state) => state.cart.shippingAddress);
-  const [paymentMethod, setPaymentMethod] = useState("cod");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const cart = useSelector((state) => state.cart);
+  const { products, totalQuantity, totalPrice, shippingAddress } = useSelector(
+    (state) => state.cart,
+  );
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-  };
+  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [momoNumber, setMomoNumber] = useState(shippingAddress.phone);
+  const [momoError, setMomoError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // The delivery details are edited in the cart. Here we only check they are usable.
+  const shippingValid = Boolean(
+    shippingAddress.name.trim() &&
+    shippingAddress.address.trim() &&
+    isValidUgandaPhone(shippingAddress.phone),
+  );
 
   const handlePlaceOrder = async () => {
-    if (
-      !shippingInfo.name.trim() ||
-      !shippingInfo.phone.trim() ||
-      !shippingInfo.address.trim()
-    ) {
-      alert("Please complete all shipping information.");
+    if (products.length === 0 || !shippingValid) return;
+
+    if (paymentMethod === "mobile" && !isValidUgandaPhone(momoNumber)) {
+      setMomoError("Enter a valid MTN or Airtel number, e.g. +256 772 123 456.");
       return;
     }
 
-    if (cart.products.length === 0) {
-      alert("Your cart is empty.");
-      return;
-    }
+    const order = {
+      orderNumber: "ORD-" + Date.now().toString().slice(-8),
+      status: "placed",
+      customer: shippingAddress,
+      paymentMethod,
+      mobileMoneyNumber:
+        paymentMethod === "mobile" ? normalizeUgandaPhone(momoNumber) : null,
+      products,
+      totalItems: totalQuantity,
+      totalPrice,
+      orderedAt: new Date().toISOString(),
+    };
 
     setIsSubmitting(true);
 
     try {
-      dispatch(
-        saveOrder({
-          orderNumber: "ORD-" + Date.now().toString().slice(-8),
+      // Pretend to talk to a server. The real API call replaces this line later.
+      await new Promise((resolve) => setTimeout(resolve, 1200));
 
-          customer: shippingInfo,
-
-          paymentMethod,
-
-          products: cart.products,
-
-          totalItems: cart.totalQuantity,
-
-          totalPrice: cart.totalPrice,
-
-          orderedAt: new Date().toISOString(),
-        }),
-      );
-
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      navigate("/order-success");
-
-      alert("Order placed successfully!");
+      dispatch(saveOrder(order));
+      dispatch(clearCart()); // the items are now in the order, so empty the cart
+      navigate("/order-success", { replace: true });
+      toast.success("Order placed successfully!");
     } catch (error) {
       console.error(error);
-      alert("Something went wrong.");
-    } finally {
+      toast.error("Something went wrong. Please try again.");
       setIsSubmitting(false);
     }
   };
-  return (
-    <div className="min-h-screen bg-gray-49">
-      <div className="container mx-auto px-4 py-10 lg:px-16 xl:px-24">
-        {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900">
-            Checkout
+
+  if (products.length === 0) {
+    return (
+      <main className="container-page py-16">
+        <div className="card mx-auto max-w-lg px-6 py-14 text-center">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Nothing to check out
           </h1>
-
           <p className="mt-2 text-gray-500">
-            Complete your order by confirming your shipping information.
+            Your cart is empty. Add some products first.
           </p>
+          <Link to="/shop" className="btn btn-primary mt-8 px-8">
+            Start shopping
+          </Link>
         </div>
+      </main>
+    );
+  }
 
-        {/* Layout */}
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-          {/* Left Side */}
-          <div className="lg:w-2/3">
-            {/* Shipping Card */}
-            <div className="rounded-3xl border border-gray-200 bg-white p-8 shadow-sm transition-all duration-300 hover:shadow-lg">
-              <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  Shipping Information
-                </h2>
+  return (
+    <main className="container-page py-10">
+      <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+        Checkout
+      </h1>
+      <p className="mt-1 text-gray-500">
+        Confirm your delivery details and choose how you will pay.
+      </p>
 
-                <div className="p-1 lg:mt-8 mt-4 border-t-2 border-orange-700 rounded-lg bg-amber-100 font-semibold">
-                  <p className="mt-1 text-sm text-gray-500">
-                    NOTE: You can change or update this information on Cart
-                    Page.
+      <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
+        <div className="space-y-6 lg:w-2/3">
+          {/* Delivery */}
+          <section className="card p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-900">
+                Delivery details
+              </h2>
+              <Link
+                to="/cart"
+                className="text-sm font-semibold text-brand-600 hover:underline"
+              >
+                Change in cart
+              </Link>
+            </div>
+
+            <dl className="mt-5 space-y-3 text-sm">
+              <div>
+                <dt className="text-gray-500">Full name</dt>
+                <dd className="font-medium text-gray-900">
+                  {shippingAddress.name}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">Phone number</dt>
+                <dd className="font-medium text-gray-900">
+                  {shippingAddress.phone}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">Delivery address</dt>
+                <dd className="font-medium text-gray-900">
+                  {shippingAddress.address}
+                </dd>
+              </div>
+            </dl>
+
+            {!shippingValid && (
+              <p
+                role="alert"
+                className="mt-5 rounded-xl bg-brand-50 p-3 text-sm text-brand-800"
+              >
+                Some delivery details are missing or invalid.{" "}
+                <Link to="/cart" className="font-semibold underline">
+                  Fix them in your cart
+                </Link>{" "}
+                to place your order.
+              </p>
+            )}
+          </section>
+
+          {/* Payment */}
+          <section className="card p-6">
+            <h2 className="text-xl font-bold text-gray-900">Payment method</h2>
+
+            <div className="mt-5 space-y-3">
+              <label className="flex cursor-pointer items-start gap-4 rounded-xl border border-gray-200 p-4 transition-colors hover:border-gray-400 has-checked:border-brand-600 has-checked:bg-brand-50">
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={paymentMethod === "cod"}
+                  onChange={() => setPaymentMethod("cod")}
+                  className="mt-1 h-4 w-4 accent-brand-600"
+                />
+                <div>
+                  <p className="font-semibold text-gray-900">Cash on delivery</p>
+                  <p className="text-sm text-gray-500">
+                    Pay when your package arrives.
                   </p>
                 </div>
-              </div>
+              </label>
 
-              <div className="space-y-6">
-                {/* Full Name */}
-
+              <label className="flex cursor-pointer items-start gap-4 rounded-xl border border-gray-200 p-4 transition-colors hover:border-gray-400 has-checked:border-brand-600 has-checked:bg-brand-50">
+                <input
+                  type="radio"
+                  name="payment"
+                  checked={paymentMethod === "mobile"}
+                  onChange={() => setPaymentMethod("mobile")}
+                  className="mt-1 h-4 w-4 accent-brand-600"
+                />
                 <div>
-                  <label className="mb-2 block text-sm font-semibold text-gray-700">
-                    Full Name
-                  </label>
-
-                  <input
-                    type="text"
-                    name="fullName"
-                    value={shippingInfo.name}
-                    readOnly
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition-all duration-300  focus:bg-gray-100 focus:ring-2 focus:ring-gray-200"
-                  />
+                  <p className="font-semibold text-gray-900">Mobile Money</p>
+                  <p className="text-sm text-gray-500">
+                    MTN & Airtel supported.
+                  </p>
                 </div>
+              </label>
 
-                {/* Phone */}
-
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-gray-700">
-                    Phone Number
+              {paymentMethod === "mobile" && (
+                <div className="pt-2">
+                  <label htmlFor="momo-number" className="label">
+                    Mobile Money number
                   </label>
-
                   <input
+                    id="momo-number"
                     type="tel"
-                    name="phone"
-                    value={shippingInfo.phone}
-                    readOnly
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition-all duration-300  focus:bg-gray-100 focus:ring-2 focus:ring-gray-200"
+                    inputMode="tel"
+                    placeholder="+256 7XX XXX XXX"
+                    value={momoNumber}
+                    onChange={(e) => {
+                      setMomoNumber(e.target.value);
+                      setMomoError("");
+                    }}
+                    aria-invalid={Boolean(momoError)}
+                    className={`input ${momoError ? "input-error" : ""}`}
                   />
+                  {momoError ? (
+                    <p className="field-error">{momoError}</p>
+                  ) : (
+                    <p className="mt-1 text-xs text-gray-500">
+                      The number you will pay with. It can be different from
+                      your delivery phone.
+                    </p>
+                  )}
                 </div>
-
-                {/* Address */}
-
-                <div>
-                  <label className="mb-2 block text-sm font-semibold text-gray-700">
-                    Delivery Address
-                  </label>
-
-                  <textarea
-                    rows={4}
-                    name="address"
-                    value={shippingInfo.address}
-                    readOnly
-                    className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition-all duration-300  focus:bg-gray-100 focus:ring-2 focus:ring-gray-200"
-                  />
-                </div>
-              </div>
+              )}
             </div>
-          </div>
-
-          {/* Right Side Placeholder */}
-
-          {/* Right Side */}
-          <div className="lg:w-1/3">
-            <div className="sticky top-6">
-              <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-lg transition-all duration-300 hover:shadow-2xl">
-                {/* Header */}
-
-                <div className="border-b border-gray-100 px-7 py-6">
-                  <h2 className="text-2xl font-bold tracking-tight text-gray-900">
-                    Order Summary
-                  </h2>
-
-                  <p className="mt-1 text-sm text-gray-500">
-                    Review your order before placing it.
-                  </p>
-                </div>
-
-                {/* Body */}
-
-                <div className="space-y-6 p-7">
-                  {/* Items */}
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">Total Items</span>
-
-                    <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold">
-                      {cart.totalQuantity}
-                    </span>
-                  </div>
-
-                  {/* Shipping */}
-
-                  <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5 transition-all duration-300 hover:border-gray-300">
-                    <div className="flex justify-between">
-                      <h4 className="font-semibold text-gray-900">
-                        Deliver To
-                      </h4>
-
-                      <span className="text-green-600 text-sm font-semibold">
-                        Active
-                      </span>
-                    </div>
-
-                    <div className="mt-4 space-y-1">
-                      <p className="font-semibold text-gray-900">
-                        {shippingInfo.name}
-                      </p>
-
-                      <p className="text-sm text-gray-600">
-                        {shippingInfo.phone}
-                      </p>
-
-                      <p className="text-sm leading-6 text-gray-600">
-                        {shippingInfo.address}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Divider */}
-
-                  <div className="border-t border-dashed border-gray-200"></div>
-
-                  {/* Price */}
-
-                  <div className="space-y-4">
-                    <div className="flex justify-between text-gray-600">
-                      <span>Subtotal</span>
-
-                      <span className="font-semibold">
-                        UGX {cart.totalPrice.toFixed(2)}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between text-gray-600">
-                      <span>Shipping</span>
-
-                      <span className="font-semibold text-green-600">Free</span>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-gray-200"></div>
-
-                  {/* Total */}
-
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <p className="text-sm text-gray-500">Total</p>
-
-                      <p className="text-xs text-gray-400">VAT Included</p>
-                    </div>
-
-                    <h2 className="text-xl font-bold tracking-tight text-gray-900">
-                      UGX {cart.totalPrice.toFixed(2)}
-                    </h2>
-                  </div>
-
-                  {/* Payment */}
-
-                  <div>
-                    <h4 className="mb-4 font-semibold text-gray-900">
-                      Payment Method
-                    </h4>
-
-                    <div className="space-y-3">
-                      <label className="flex cursor-pointer items-center justify-between rounded-xl border border-gray-200 p-4 transition hover:border-black">
-                        <div>
-                          <p className="font-medium">Cash on Delivery</p>
-
-                          <p className="text-sm text-gray-500">
-                            Pay when your package arrives.
-                          </p>
-                        </div>
-
-                        <input
-                          type="radio"
-                          name="payment"
-                          checked={paymentMethod === "cod"}
-                          onChange={() => setPaymentMethod("cod")}
-                          className="h-5 w-5 accent-black"
-                        />
-                      </label>
-
-                      <label className="flex cursor-pointer items-center justify-between rounded-xl border border-gray-200 p-4 transition hover:border-black">
-                        <div>
-                          <p className="font-medium">Mobile Money</p>
-
-                          <p className="text-sm text-gray-500">
-                            MTN & Airtel supported.
-                          </p>
-                        </div>
-
-                        <input
-                          type="radio"
-                          name="payment"
-                          checked={paymentMethod === "mobile"}
-                          onChange={() => setPaymentMethod("mobile")}
-                          className="h-5 w-5 accent-black"
-                        />
-                      </label>
-                    </div>
-                  </div>
-
-                  {/* Button */}
-
-                  <button
-                    onClick={handlePlaceOrder}
-                    disabled={isSubmitting}
-                    className="w-full rounded-2xl bg-orange-600 py-4 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-gray-800 hover:shadow-xl active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
-                  >
-                    {isSubmitting ? "Order Placed" : "Place Order"}
-                  </button>
-
-                  {/* Security */}
-
-                  <div className="rounded-2xl bg-gray-50 p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-700">
-                        ✓
-                      </div>
-
-                      <div>
-                        <p className="font-semibold text-gray-900">
-                          Secure Checkout
-                        </p>
-
-                        <p className="text-sm text-gray-500">
-                          Your information is encrypted and protected.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          </section>
         </div>
+
+        {/* Summary */}
+        <aside className="lg:sticky lg:top-24 lg:w-1/3">
+          <div className="card overflow-hidden">
+            <div className="border-b border-gray-100 px-6 py-5">
+              <h2 className="text-xl font-bold text-gray-900">Order summary</h2>
+            </div>
+
+            <div className="space-y-5 p-6">
+              <ul className="max-h-64 space-y-3 overflow-y-auto pr-1">
+                {products.map((item) => (
+                  <li key={item.id} className="flex items-center gap-3">
+                    <img
+                      src={item.image}
+                      alt=""
+                      className="h-12 w-12 shrink-0 rounded-lg bg-gray-50 object-contain p-1"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-gray-900">
+                        {item.name}
+                      </p>
+                      <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
+                    </div>
+                    <p className="text-sm font-medium text-gray-900">
+                      {formatCurrency(item.price * item.quantity)}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="space-y-3 border-t border-dashed border-gray-200 pt-5 text-sm">
+                <div className="flex justify-between text-gray-600">
+                  <span>
+                    Subtotal ({totalQuantity}{" "}
+                    {totalQuantity === 1 ? "item" : "items"})
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(totalPrice)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Shipping</span>
+                  <span className="font-semibold text-green-700">Free</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-gray-200 pt-5">
+                <span className="font-semibold text-gray-900">Total</span>
+                <span className="text-xl font-bold text-gray-900">
+                  {formatCurrency(totalPrice)}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handlePlaceOrder}
+                disabled={isSubmitting || !shippingValid}
+                className="btn btn-primary btn-block py-4"
+              >
+                {isSubmitting ? "Placing order..." : "Place order"}
+              </button>
+            </div>
+          </div>
+        </aside>
       </div>
-    </div>
+    </main>
   );
 };
 

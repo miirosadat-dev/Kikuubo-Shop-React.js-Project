@@ -12,6 +12,7 @@ import { setProducts } from "./redux/productSlice";
 import { Products } from "./assets/Products";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
+import OrderTracking from "./pages/OrderTracking";
 import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
@@ -42,6 +43,7 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/order-success" element={<OrderSuccess />} />
+        <Route path="/track-order" element={<OrderTracking />} />
       </Routes>
 
       <Footer />

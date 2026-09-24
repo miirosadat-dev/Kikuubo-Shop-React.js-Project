@@ -1,259 +1,280 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import emptyCart from "../assets/images/emptycart.png";
-import { FaTrashAlt } from "react-icons/fa";
+import toast from "react-hot-toast";
+import { FaShoppingCart, FaTrashAlt, FaMinus, FaPlus } from "react-icons/fa";
 import Modal from "../components/Modal";
 import ChangeAddress from "../components/ChangeAddress";
 import {
+  addToCart,
+  clearCart,
   decreaseQuantity,
   increaseQuantity,
   removeFromCart,
 } from "../redux/CartSlice";
-import { useNavigate } from "react-router-dom";
+import { formatCurrency } from "../utils/formatCurrency";
 
 const Cart = () => {
-  const cart = useSelector((state) => state.cart);
+  const { products, totalQuantity, totalPrice, shippingAddress } = useSelector(
+    (state) => state.cart,
+  );
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const address = useSelector((state) => state.cart.shippingAddress);
-  const dispatch = useDispatch();
+  const [confirmingClear, setConfirmingClear] = useState(false);
+
+  // Removing shows a message with an Undo button, so a mis-click is not a disaster
+  const handleRemove = (item) => {
+    dispatch(removeFromCart(item.id));
+    toast((t) => (
+      <span className="flex items-center gap-3 text-sm">
+        {item.name} removed
+        <button
+          type="button"
+          className="font-semibold text-brand-600 hover:underline"
+          onClick={() => {
+            dispatch(addToCart(item));
+            toast.dismiss(t.id);
+          }}
+        >
+          Undo
+        </button>
+      </span>
+    ));
+  };
+
+  const handleClear = () => {
+    dispatch(clearCart());
+    setConfirmingClear(false);
+    toast("Cart cleared");
+  };
+
+  if (products.length === 0) {
+    return (
+      <main className="container-page py-16">
+        <div className="card mx-auto max-w-lg px-6 py-14 text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-brand-50 text-3xl text-brand-600">
+            <FaShoppingCart />
+          </div>
+          <h1 className="mt-6 text-2xl font-bold text-gray-900">
+            Your cart is empty
+          </h1>
+          <p className="mt-2 text-gray-500">
+            Looks like you haven't added anything yet. Browse our products and
+            add what you like.
+          </p>
+          <Link to="/shop" className="btn btn-primary mt-8 px-8">
+            Start shopping
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <div className="container mx-auto min-h-screen py-12 px-4 lg:px-16 xl:px-24">
-      {cart.products.length > 0 ? (
+    <main className="container-page py-10">
+      {/* Title and clear cart */}
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h3 className="mb-8 text-3xl font-bold tracking-tight text-gray-900">
-            Shopping Cart
-          </h3>
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-start mt-8">
-            <div className="lg:w-2/3">
-              <div>
-                {cart.products.map((product) => (
-                  <div
-                    key={product.id}
-                    className="group flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 rounded-2xl border border-gray-300 bg-gray-50 p-5 mb-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-                  >
-                    {/* Left Side */}
-                    <div className="flex items-center gap-5 flex-1">
-                      <div className="h-24 w-24 flex items-center justify-center rounded-xl bg-gray-100 p-3">
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
-                        />
-                      </div>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            Shopping cart
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            {totalQuantity} {totalQuantity === 1 ? "item" : "items"}
+          </p>
+        </div>
 
-                      <div className="flex flex-col justify-between">
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {product.name}
-                        </h3>
+        {confirmingClear ? (
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="text-gray-600">Remove all items?</span>
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={handleClear}
+            >
+              Yes, clear cart
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={() => setConfirmingClear(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm text-gray-600"
+            onClick={() => setConfirmingClear(true)}
+          >
+            Clear cart
+          </button>
+        )}
+      </div>
 
-                        <p className="mt-1 text-sm text-gray-500">Unit Price</p>
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
+        {/* Items */}
+        <div className="lg:w-2/3">
+          <ul className="space-y-4">
+            {products.map((item) => (
+              <li
+                key={item.id}
+                className="card flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:p-5"
+              >
+                <Link
+                  to={`/product/${item.id}`}
+                  className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-gray-50 p-2"
+                >
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="h-full w-full object-contain"
+                  />
+                </Link>
 
-                        <p className="font-medium text-gray-700">
-                          UGX {product.price}
-                        </p>
-
-                        <div className="mt-4 flex items-center">
-                          <div className="flex items-center rounded-full border border-gray-300 overflow-hidden">
-                            <button
-                              className="w-10 h-10 text-lg font-semibold hover:bg-gray-100 transition"
-                              onClick={() =>
-                                dispatch(decreaseQuantity(product.id))
-                              }
-                            >
-                              -
-                            </button>
-
-                            <div className="w-12 text-center font-semibold">
-                              {product.quantity}
-                            </div>
-
-                            <button
-                              className="w-10 h-10 text-lg font-semibold hover:bg-gray-100 transition"
-                              onClick={() =>
-                                dispatch(increaseQuantity(product.id))
-                              }
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between lg:justify-end gap-8">
-                      <div className="text-right">
-                        <p className="text-sm text-gray-500">Subtotal</p>
-
-                        <p className="text-xl font-bold text-gray-900">
-                          UGX {(product.quantity * product.price).toFixed(2)}
-                        </p>
-                      </div>
-
-                      {/* Remove button */}
-                      <button
-                        className="flex h-11 w-11 items-center justify-center rounded-full border border-red-100 bg-red-50 text-red-500 transition-all duration-300 hover:scale-110 hover:bg-red-500 hover:text-white"
-                        onClick={() => dispatch(removeFromCart(product.id))}
-                      >
-                        <FaTrashAlt size={15} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* The right side */}
-            {/* Right Side */}
-            <div className="lg:w-1/3">
-              <div className="sticky top-6">
-                <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-lg transition-all duration-300 hover:shadow-2xl">
-                  {/* Header */}
-                  <div className="border-b border-gray-100 px-7 py-6">
-                    <h3 className="text-2xl font-bold tracking-tight text-gray-900">
-                      Order Summary
-                    </h3>
-
-                    <p className="mt-1 text-sm text-gray-500">
-                      Review your order before checkout.
-                    </p>
-                  </div>
-
-                  {/* Body */}
-                  <div className="space-y-6 p-7">
-                    {/* Items */}
-                    <div className="flex items-center justify-between text-gray-900">
-                      <span>Total Items</span>
-
-                      <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-900">
-                        {cart.totalQuantity}
-                      </span>
-                    </div>
-
-                    {/* Shipping */}
-                    <div className="rounded-2xl border border-gray-200 bg-gray-50 p-4 transition duration-300 hover:border-gray-300">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-semibold text-gray-900">
-                          Shipping Address
-                        </h4>
-
-                        <button
-                          className="text-md font-medium text-blue-700 transition hover:underline hover:text-yellow-600"
-                          onClick={() => setIsModalOpen(true)}
-                        >
-                          Change
-                        </button>
-                      </div>
-
-                      <div className="mt-3 space-y-1 text-sm text-gray-600">
-                        <p className="font-medium text-gray-900">
-                          {address.name}
-                        </p>
-
-                        <p>{address.phone}</p>
-
-                        <p>{address.address}</p>
-                      </div>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="border-t border-dashed border-gray-200"></div>
-
-                    {/* Price Breakdown */}
-
-                    <div className="space-y-4">
-                      <div className="flex justify-between text-xl font-bold text-gray-900">
-                        <span>Subtotal</span>
-
-                        <span className="font-medium text-sm">
-                          UGX {cart.totalPrice.toFixed(2)}
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between text-gray-900">
-                        <span>Shipping</span>
-
-                        <span className="text-green-600 font-semibold">
-                          Free
-                        </span>
-                      </div>
-
-                      <div className="flex justify-between text-gray-900">
-                        <span>Taxes</span>
-
-                        <span>Calculated at checkout</span>
-                      </div>
-                    </div>
-
-                    {/* Divider */}
-
-                    <div className="border-t border-gray-200"></div>
-
-                    {/* Total */}
-
-                    <div className="flex items-end justify-between">
-                      <div>
-                        <p className="text-sm text-gray-800">Total</p>
-
-                        <p className="text-xs text-gray-400">
-                          Inclusive of
-                          <br /> applicable charges
-                        </p>
-                      </div>
-
-                      <h2 className="lg:text-xl md:text-xl font-bold tracking-tight text-gray-900">
-                        UGX {cart.totalPrice.toFixed(2)}
-                      </h2>
-                    </div>
-
-                    {/* Checkout Button */}
-
-                    <button
-                      className="group relative w-full overflow-hidden rounded-2xl bg-orange-600 py-4 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-gray-800 hover:shadow-xl active:scale-[0.98]"
-                      onClick={() => navigate("/checkout")}
+                <div className="min-w-0 flex-1">
+                  <h2 className="font-semibold text-gray-900">
+                    <Link
+                      to={`/product/${item.id}`}
+                      className="hover:text-brand-600"
                     >
-                      Proceed to Checkout
+                      {item.name}
+                    </Link>
+                  </h2>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {formatCurrency(item.price)} each
+                  </p>
+
+                  <div className="mt-3 inline-flex items-center overflow-hidden rounded-xl border border-gray-300">
+                    <button
+                      type="button"
+                      aria-label={`Decrease quantity of ${item.name}`}
+                      disabled={item.quantity <= 1}
+                      onClick={() => dispatch(decreaseQuantity(item.id))}
+                      className="flex h-10 w-10 items-center justify-center text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <FaMinus size={11} />
                     </button>
-
-                    {/* Trust Section */}
-
-                    <div className="rounded-2xl bg-gray-50 p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-700">
-                          ✓
-                        </div>
-
-                        <div>
-                          <p className="font-semibold text-gray-900">
-                            Secure Checkout
-                          </p>
-
-                          <p className="text-sm text-gray-500">
-                            Payments are encrypted and protected.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                    <span
+                      className="w-10 text-center font-semibold"
+                      aria-live="polite"
+                    >
+                      {item.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={`Increase quantity of ${item.name}`}
+                      onClick={() => dispatch(increaseQuantity(item.id))}
+                      className="flex h-10 w-10 items-center justify-center text-gray-700 hover:bg-gray-100"
+                    >
+                      <FaPlus size={11} />
+                    </button>
                   </div>
                 </div>
+
+                <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end sm:justify-between sm:self-stretch">
+                  <p className="text-lg font-bold text-gray-900">
+                    {formatCurrency(item.price * item.quantity)}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(item)}
+                    className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-brand-600"
+                  >
+                    <FaTrashAlt size={13} />
+                    Remove
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <Link
+            to="/shop"
+            className="mt-6 inline-block text-sm font-semibold text-brand-600 hover:underline"
+          >
+            Continue shopping
+          </Link>
+        </div>
+
+        {/* Summary */}
+        <aside className="lg:sticky lg:top-24 lg:w-1/3">
+          <div className="card overflow-hidden">
+            <div className="border-b border-gray-100 px-6 py-5">
+              <h2 className="text-xl font-bold text-gray-900">Order summary</h2>
+            </div>
+
+            <div className="space-y-5 p-6">
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-gray-900">
+                    Delivery address
+                  </h3>
+                  <button
+                    type="button"
+                    className="text-sm font-semibold text-brand-600 hover:underline"
+                    onClick={() => setIsModalOpen(true)}
+                  >
+                    Change
+                  </button>
+                </div>
+                <div className="mt-3 space-y-1 text-sm text-gray-600">
+                  <p className="font-medium text-gray-900">
+                    {shippingAddress.name}
+                  </p>
+                  <p>{shippingAddress.phone}</p>
+                  <p>{shippingAddress.address}</p>
+                </div>
               </div>
+
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between text-gray-600">
+                  <span>
+                    Subtotal ({totalQuantity}{" "}
+                    {totalQuantity === 1 ? "item" : "items"})
+                  </span>
+                  <span className="font-medium text-gray-900">
+                    {formatCurrency(totalPrice)}
+                  </span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Shipping</span>
+                  <span className="font-semibold text-green-700">Free</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-gray-200 pt-5">
+                <span className="font-semibold text-gray-900">Total</span>
+                <span className="text-xl font-bold text-gray-900">
+                  {formatCurrency(totalPrice)}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                className="btn btn-primary btn-block py-4"
+                onClick={() => navigate("/checkout")}
+              >
+                Proceed to checkout
+              </button>
+
+              <p className="text-center text-xs text-gray-500">
+                Pay with MTN MoMo, Airtel Money or cash on delivery.
+              </p>
             </div>
           </div>
-          <Modal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}>
-            <ChangeAddress
-              address={address}
-              dispatch={dispatch}
-              setIsModalOpen={setIsModalOpen}
-            />
-          </Modal>
-        </div>
-      ) : (
-        <div className="flex justify-center">
-          <img src={emptyCart} className="h-96" />
-        </div>
-      )}
-    </div>
+        </aside>
+      </div>
+
+      <Modal isModalOpen={isModalOpen} setIsModalOpen={setIsModalOpen}>
+        <ChangeAddress
+          address={shippingAddress}
+          dispatch={dispatch}
+          setIsModalOpen={setIsModalOpen}
+        />
+      </Modal>
+    </main>
   );
 };
 

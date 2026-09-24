@@ -1,155 +1,149 @@
 import { FaCheckCircle } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import { formatCurrency } from "../utils/formatCurrency";
+import { formatDateTime } from "../utils/formatDate";
 
 const OrderSuccess = () => {
   const order = useSelector((state) => state.cart.currentOrder);
 
-  // Prevent users from accessing this page directly
+  // Someone who opens this address directly, without ordering, sees this instead
   if (!order) {
     return (
-      <div className="container mx-auto flex min-h-screen items-center justify-center px-4">
-        <div className="rounded-3xl bg-white p-10 text-center shadow-lg">
-          <h2 className="text-2xl font-bold text-gray-900">No Order Found</h2>
-
-          <p className="mt-3 text-gray-500">You haven't placed an order yet.</p>
-
-          <Link
-            to="/"
-            className="mt-8 inline-block rounded-xl bg-black px-8 py-3 font-semibold text-white transition hover:bg-gray-800"
-          >
-            Continue Shopping
+      <main className="container-page py-16">
+        <div className="card mx-auto max-w-lg px-6 py-14 text-center">
+          <h1 className="text-2xl font-bold text-gray-900">No order found</h1>
+          <p className="mt-2 text-gray-500">You haven't placed an order yet.</p>
+          <Link to="/shop" className="btn btn-primary mt-8 px-8">
+            Start shopping
           </Link>
         </div>
-      </div>
+      </main>
     );
   }
 
+  const paymentLabel =
+    order.paymentMethod === "mobile"
+      ? `Mobile Money${order.mobileMoneyNumber ? ` (${order.mobileMoneyNumber})` : ""
+      }`
+      : "Cash on delivery";
+
   return (
-    <div className="min-h-screen bg-white py-12">
-      <div className="container mx-auto max-w-5xl px-4">
-        {/* Success */}
+    <main className="container-page max-w-4xl py-12">
+      {/* Thank you */}
+      <div className="mb-10 text-center">
+        <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-green-100">
+          <FaCheckCircle size={56} className="text-green-600" />
+        </div>
+        <h1 className="text-4xl font-bold text-gray-900">Thank you!</h1>
+        <p className="mt-3 text-lg text-gray-600">
+          Your order has been placed successfully.
+        </p>
+        <p className="mt-2 text-gray-500">
+          Order number
+          <span className="ml-2 font-semibold text-gray-900">
+            {order.orderNumber}
+          </span>
+        </p>
+      </div>
 
-        <div className="mb-10 text-center">
-          <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-green-100">
-            <FaCheckCircle size={60} className="text-green-600" />
-          </div>
-
-          <h1 className="text-4xl font-bold text-gray-900">Thank You!</h1>
-          <p className="mt-3 text-gray-500">
-            Order No.
-            <span className="ml-2 font-semibold text-gray-900">
-              {order.orderNumber}
-            </span>
-          </p>
-
-          <p className="mt-3 text-lg text-gray-500">
-            Your order has been placed successfully.
-          </p>
+      {/* Summary (this card is what gets printed) */}
+      <div className="card overflow-hidden">
+        <div className="border-b border-gray-100 px-6 py-5 md:px-8">
+          <h2 className="text-2xl font-bold text-gray-900">Order summary</h2>
         </div>
 
-        {/* Summary Card */}
-
-        <div className="rounded-3xl border border-gray-200 bg-gray-50 shadow-xl">
-          {/* Header */}
-
-          <div className="border-b border-gray-100 px-8 py-6">
-            <h2 className="text-2xl font-bold">Order Summary</h2>
-          </div>
-
-          {/* Customer */}
-
-          <div className="border-b border-gray-100 p-8">
-            <h3 className="mb-5 text-lg font-semibold">Shipping Information</h3>
-
-            <div className="space-y-2 text-gray-600">
-              <p>
-                <span className="font-semibold text-gray-900">Name:</span>{" "}
-                {order.customer.name}
-              </p>
-
-              <p>
-                <span className="font-semibold text-gray-900">Phone:</span>{" "}
-                {order.customer.phone}
-              </p>
-
-              <p>
-                <span className="font-semibold text-gray-900">Address:</span>{" "}
-                {order.customer.address}
-              </p>
+        <div className="grid gap-6 border-b border-gray-100 p-6 sm:grid-cols-2 md:p-8">
+          <div>
+            <h3 className="mb-3 text-sm font-semibold text-gray-500">
+              Deliver to
+            </h3>
+            <div className="space-y-1 text-gray-700">
+              <p className="font-semibold text-gray-900">{order.customer.name}</p>
+              <p>{order.customer.phone}</p>
+              <p>{order.customer.address}</p>
             </div>
           </div>
 
-          {/* Products */}
+          <div>
+            <h3 className="mb-3 text-sm font-semibold text-gray-500">
+              Order details
+            </h3>
+            <div className="space-y-1 text-gray-700">
+              <p>
+                <span className="text-gray-500">Placed:</span>{" "}
+                {formatDateTime(order.orderedAt)}
+              </p>
+              <p>
+                <span className="text-gray-500">Payment:</span> {paymentLabel}
+              </p>
+            </div>
+          </div>
+        </div>
 
-          <div className="p-8">
-            <h3 className="mb-6 text-lg font-semibold">Products</h3>
+        <div className="p-6 md:p-8">
+          <h3 className="mb-4 text-sm font-semibold text-gray-500">Products</h3>
 
-            <div className="space-y-5">
-              {order.products.map((product) => (
-                <div
-                  key={product.id}
-                  className="flex items-center justify-between rounded-2xl bg-white p-5"
-                >
-                  <div className="flex items-center gap-4">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="h-16 w-16 rounded-xl object-contain bg-white p-2"
-                    />
-
-                    <div>
-                      <h4 className="font-semibold lg:text-lg text-sm ml-2">
-                        {product.name}
-                      </h4>
-
-                      <p className="text-sm text-gray-500">
-                        Qty: {product.quantity}
-                      </p>
-                    </div>
+          <ul className="divide-y divide-gray-100">
+            {order.products.map((item) => (
+              <li
+                key={item.id}
+                className="flex items-center justify-between gap-4 py-4"
+              >
+                <div className="flex items-center gap-4">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="h-16 w-16 rounded-xl bg-gray-50 object-contain p-2"
+                  />
+                  <div>
+                    <p className="font-semibold text-gray-900">{item.name}</p>
+                    <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                   </div>
-
-                  <p className="text-sm ml-4">
-                    UGX {(product.quantity * product.price).toFixed(2)}
-                  </p>
                 </div>
-              ))}
+                <p className="font-medium text-gray-900">
+                  {formatCurrency(item.price * item.quantity)}
+                </p>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-6 space-y-2 border-t border-gray-200 pt-6">
+            <div className="flex justify-between text-gray-600">
+              <span>Total items</span>
+              <span className="font-semibold text-gray-900">
+                {order.totalItems}
+              </span>
             </div>
-
-            {/* Totals */}
-
-            <div className="mt-8 border-t pt-6">
-              <div className="mb-3 flex justify-between">
-                <span>Total Items</span>
-
-                <span className="font-semibold">{order.totalItems}</span>
-              </div>
-
-              <div className="flex justify-between text-2xl font-semibold">
-                <span>Total</span>
-
-                <span>UGX {order.totalPrice.toFixed(2)}</span>
-              </div>
+            <div className="flex justify-between text-gray-600">
+              <span>Shipping</span>
+              <span className="font-semibold text-green-700">Free</span>
+            </div>
+            <div className="flex justify-between pt-2 text-2xl font-bold text-gray-900">
+              <span>Total</span>
+              <span>{formatCurrency(order.totalPrice)}</span>
             </div>
           </div>
-        </div>
-
-        {/* Buttons */}
-
-        <div className="mt-10 flex flex-col gap-4 md:flex-row">
-          <button className="flex-1 rounded-2xl bg-orange-600 py-4 font-semibold text-white transition-all duration-300 hover:-translate-y-1 hover:bg-gray-800">
-            Track Order
-          </button>
-
-          <Link
-            to="/"
-            className="flex-1 rounded-2xl border border-gray-300 py-4 text-center font-semibold transition-all duration-300 hover:border-orange-500 hover:bg-gray-100"
-          >
-            Continue Shopping
-          </Link>
         </div>
       </div>
-    </div>
+
+      {/* Buttons (hidden when printing) */}
+      <div className="mt-10 flex flex-col gap-4 sm:flex-row print:hidden">
+        <Link to="/track-order" className="btn btn-primary flex-1 py-4">
+          Track order
+        </Link>
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="btn btn-outline flex-1 py-4"
+        >
+          Print summary
+        </button>
+        <Link to="/shop" className="btn btn-outline flex-1 py-4">
+          Continue shopping
+        </Link>
+      </div>
+    </main>
   );
 };
 

@@ -112,3 +112,12 @@
         @apply text-2xl font-bold text-gray-900 md:text-3xl;
     }
 }
+
+/* Printing: show only the page content, not the header and footer */
+@media print {
+
+    header,
+    footer {
+        display: none !important;
+    }
+}

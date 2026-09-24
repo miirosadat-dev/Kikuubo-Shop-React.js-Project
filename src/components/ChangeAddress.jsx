@@ -1,92 +1,119 @@
 import { useState } from "react";
+import toast from "react-hot-toast";
 import { updateShippingAddress } from "../redux/CartSlice";
+import { isValidUgandaPhone } from "../utils/validators";
 
 const ChangeAddress = ({ address, dispatch, setIsModalOpen }) => {
-  const [newAddress, setNewAddress] = useState({
+  const [form, setForm] = useState({
     name: address.name,
     phone: address.phone,
     address: address.address,
   });
+  const [errors, setErrors] = useState({});
 
-  const onClose = () => {
-    dispatch(updateShippingAddress(newAddress));
+  // Update one field and clear its error message while the person is typing
+  const handleChange = (field) => (e) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+  };
+
+  const validate = () => {
+    const found = {};
+    if (form.name.trim().length < 2) found.name = "Enter your full name.";
+    if (!isValidUgandaPhone(form.phone))
+      found.phone = "Enter a valid Ugandan mobile number, e.g. +256 772 123 456.";
+    if (form.address.trim().length < 5)
+      found.address = "Enter your delivery address.";
+    return found;
+  };
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    const found = validate();
+    setErrors(found);
+    if (Object.keys(found).length > 0) return;
+
+    dispatch(
+      updateShippingAddress({
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        address: form.address.trim(),
+      }),
+    );
+    toast.success("Delivery address updated");
     setIsModalOpen(false);
   };
+
   return (
-    <div>
+    <form onSubmit={handleSave} noValidate>
+      <h2 className="mb-6 pr-10 text-xl font-bold text-gray-900">
+        Delivery address
+      </h2>
+
       <div className="space-y-5">
         <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-700">
-            Full Name
+          <label htmlFor="addr-name" className="label">
+            Full name
           </label>
-
           <input
+            id="addr-name"
             type="text"
             placeholder="Enter your full name"
-            value={newAddress.name}
-            onChange={(e) =>
-              setNewAddress((prev) => ({
-                ...prev,
-                name: e.target.value,
-              }))
-            }
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-300 focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-gray-200"
+            value={form.name}
+            onChange={handleChange("name")}
+            aria-invalid={Boolean(errors.name)}
+            className={`input ${errors.name ? "input-error" : ""}`}
           />
+          {errors.name && <p className="field-error">{errors.name}</p>}
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-700">
-            Phone Number
+          <label htmlFor="addr-phone" className="label">
+            Phone number
           </label>
-
           <input
+            id="addr-phone"
             type="tel"
             placeholder="+256 7XX XXX XXX"
-            value={newAddress.phone}
-            onChange={(e) =>
-              setNewAddress((prev) => ({
-                ...prev,
-                phone: e.target.value,
-              }))
-            }
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-300 focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-gray-200"
+            value={form.phone}
+            onChange={handleChange("phone")}
+            aria-invalid={Boolean(errors.phone)}
+            className={`input ${errors.phone ? "input-error" : ""}`}
           />
+          {errors.phone && <p className="field-error">{errors.phone}</p>}
         </div>
 
         <div>
-          <label className="mb-2 block text-sm font-semibold text-gray-700">
-            Delivery Address
+          <label htmlFor="addr-address" className="label">
+            Delivery address
           </label>
-
           <textarea
-            rows={4}
-            placeholder="Enter your delivery address"
-            value={newAddress.address}
-            onChange={(e) =>
-              setNewAddress((prev) => ({
-                ...prev,
-                address: e.target.value,
-              }))
-            }
-            className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none transition-all duration-300 focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-gray-200"
+            id="addr-address"
+            rows={3}
+            placeholder="Area, street and landmark"
+            value={form.address}
+            onChange={handleChange("address")}
+            aria-invalid={Boolean(errors.address)}
+            className={`input resize-none ${errors.address ? "input-error" : ""
+              }`}
           />
+          {errors.address && <p className="field-error">{errors.address}</p>}
         </div>
       </div>
-      <div className="flex justify-end">
+
+      <div className="mt-6 flex justify-end gap-3">
         <button
-          className="bg-gray-500 text-white cursor-pointer py-2 px-4 rounded mr-2"
+          type="button"
+          className="btn btn-outline"
           onClick={() => setIsModalOpen(false)}
         >
           Cancel
         </button>
-        <button
-          className="bg-blue-500 text-white cursor-pointer py-2 px-4 rounded"
-          onClick={onClose}
-        >
-          Save Address
+        <button type="submit" className="btn btn-primary">
+          Save address
         </button>
       </div>
-    </div>
+    </form>
   );
 };
 

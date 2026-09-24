@@ -27,7 +27,7 @@ const initialState = {
   totalQuantity: 0,
   totalPrice: 0,
   shippingAddress: saved?.shippingAddress ?? defaultAddress,
-  currentOrder: null,
+  currentOrder: saved?.currentOrder ?? null,
 };
 
 recalculateTotals(initialState);
