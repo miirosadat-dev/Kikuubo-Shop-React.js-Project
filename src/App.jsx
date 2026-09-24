@@ -13,6 +13,9 @@ import { Products } from "./assets/Products";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
 import OrderTracking from "./pages/OrderTracking";
+import Contact from "./pages/Contact";
+import About from "./pages/About";
+import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
@@ -44,6 +47,10 @@ function App() {
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/order-success" element={<OrderSuccess />} />
         <Route path="/track-order" element={<OrderTracking />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<About />} />
+        {/* Anything else */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
 
       <Footer />
